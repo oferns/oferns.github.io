@@ -4,9 +4,9 @@ Personal blog on [GitHub Pages](https://pages.github.com/). Plain [Jekyll](https
 4.4 — **no theme gem, no CSS framework, no icon font, no jQuery** — built and deployed by a GitHub
 Actions workflow.
 
-The whole page payload is ~4 KB of gzipped CSS + JS. Dark mode is a CSS custom-property swap, code
-highlighting is a generated Rouge stylesheet, icons are inline SVG, search is a JSON file plus ~60
-lines of vanilla JS.
+The home page ships ~4 KB of gzipped CSS + JS plus ~1.9 KB of HTML. Dark mode is a CSS
+custom-property swap, code highlighting is a generated Rouge stylesheet, icons are inline SVG, search
+is a JSON file plus ~80 lines of vanilla JS.
 
 ## Quick start
 
@@ -86,6 +86,7 @@ Pages must use **GitHub Actions** as its build source (Settings → Pages → So
 
 ## Deliberately absent
 
-Font Awesome (10 icons → inline SVG), jQuery + its plugins, lunr, a second "dark" stylesheet,
-Minimal Mistakes and its dependency tree (`jekyll-gist`, `octokit`, `faraday`, …),
-`jekyll-paginate` (the home page lists posts directly). Re-adding any of them fails `scripts/check.sh`.
+Font Awesome (it was serving 10 icons; 7 inline SVGs cover what we use), jQuery + its plugins, lunr,
+a second "dark" stylesheet, Minimal Mistakes and its dependency tree (`jekyll-gist`, `octokit`,
+`faraday`, …), and `jekyll-paginate` (the home page lists posts directly via `home_post_limit`).
+Re-adding any of them fails `scripts/check.sh`.

@@ -1,111 +1,86 @@
 # AGENTS.md
 
-Personal blog for Oliver Ferns. Plain Jekyll published to GitHub Pages (user page repo, `master`,
-`https://oferns.github.io` at the root path, `baseurl` empty). **No theme gem and no front-end
-libraries** — the layouts, CSS and JS in this repo are the whole front end.
+Personal blog for Oliver Ferns. Plain Jekyll 4.4 on GitHub Pages (user page repo, `master`,
+`https://oferns.github.io` at the root, `baseurl` empty). **No theme gem, no CSS framework, no icon
+font, no JS libraries** — the layouts, CSS and JS in this repo are the entire front end.
 
-## Stack
+## Stack & commands
 
-| | |
-|---|---|
-| Ruby | `3.4.3` (`.ruby-version`; CI reads it via `ruby/setup-ruby`) |
-| Jekyll | `4.4.1` |
-| Gems (38 total) | `jekyll`, `jekyll-seo-tag`, `jekyll-feed`, `jekyll-sitemap`, `rake`, `webrick` |
-| Front end | `assets/css/main.css`, `assets/css/highlight.css` (generated), `assets/js/theme.js`, `assets/js/search.js` |
-| Markdown / highlighter | kramdown (GFM) / Rouge (built into Jekyll) |
-| Deps | committed `Gemfile.lock`; Dependabot weekly for bundler + github-actions |
-
-`bundle list` should stay near 38 gems. `sass-embedded` + `google-protobuf` are installed because
-Jekyll hard-depends on `jekyll-sass-converter`, but nothing here is SCSS — they go unused.
-
-## Commands
+Ruby `3.4.3` (`.ruby-version`, also used by CI). Gems: `jekyll`, `jekyll-seo-tag`, `jekyll-feed`,
+`jekyll-sitemap`, `rake`, `webrick` — 38 installed, keep it near that. (`sass-embedded` and
+`google-protobuf` arrive via Jekyll and go unused: nothing here is SCSS.)
 
 ```sh
 bundle install
-rake serve      # dev server + live reload, http://localhost:4000
-rake build      # build to _site
+rake serve      # dev server + live reload on :4000
 rake check      # build + scripts/check.sh — the verification step
 rake new TITLE="My post" TAGS=a,b CATEGORY=math
 rake highlight  # regenerate assets/css/highlight.css from Rouge
 rake update     # bundle update, then rake check
 ```
 
-`_site/` and `.jekyll-cache/` are artifacts — gitignored, never edit them.
+`_site/` and `.jekyll-cache/` are artifacts: gitignored, never edit.
 
-**`scripts/check.sh` is the single source of truth for smoke assertions** and CI runs exactly
-`bash scripts/check.sh _site`. It asserts: required pages exist; the post permalink shape; absolute
-sitemap `<loc>` and canonical; posts listed on the home page; reading time + tags rendered; dark-mode
-`data-theme` hook and CSS custom properties present; inline SVG present; search link + non-empty
-`search.json`; MathJax pinned + SRI where used; **Font Awesome / jQuery / lunr / `dark.css` absent**;
-repo docs not published; and a **home-page CSS+JS payload budget of 8 KB gzipped** (currently ~4 KB).
-Add new assertions there, not in the workflow file. If you intentionally change any of this, update
-`scripts/check.sh` in the same commit.
+## Verification
+
+`scripts/check.sh` is the source of truth; CI runs exactly `bash scripts/check.sh _site`. It asserts:
+required pages exist · post permalink shape · absolute sitemap `<loc>` and canonical · home page lists
+posts · reading time and tags render · dark-mode `data-theme` hook and CSS tokens present · inline SVG
+present · search wired and `search.json` non-empty · MathJax pinned + SRI where used · **Font Awesome,
+jQuery, lunr and `dark.css` absent** · repo docs not published · home-page CSS+JS ≤ 8 KB gzipped
+(currently ~4 KB).
+
+Add new assertions **there**, never in the workflow file, and update it in the same commit as any
+intentional change it rejects.
 
 ## Deployment
 
 `.github/workflows/deploy.yml`: `ruby/setup-ruby` (bundler cache) → `bundle exec jekyll build`
-(`JEKYLL_ENV=production`) → `scripts/check.sh` → `actions/upload-pages-artifact@v5` →
-`actions/deploy-pages@v5` (master pushes only; PRs build + assert, never deploy).
+(`JEKYLL_ENV=production`) → `scripts/check.sh` → `upload-pages-artifact` → `deploy-pages` (master
+pushes only; PRs build and assert, no deploy). Needs `pages: write` + `id-token: write` and the
+`github-pages` environment — don't trim them.
 
-- Pages' build source must be **"GitHub Actions"**. If it is set to "Deploy from a branch",
-  production reverts to the frozen `github-pages` gem (Jekyll 3.10) and this Gemfile is ignored.
-- The `deploy` job needs `permissions: pages: write, id-token: write` and the `github-pages`
-  environment — don't trim them.
+- Pages' build source must be **"GitHub Actions"**. "Deploy from a branch" reverts production to the
+  frozen `github-pages` gem (Jekyll 3.10) and ignores this Gemfile.
 - After pushing: `gh run list`, then `gh run view <id> --log`. A failed workflow leaves the previous
   deployment live.
 
-## Adding a post
+## Posts
 
 `rake new TITLE="…"` scaffolds `_posts/YYYY-MM-DD-slug.md`. `layout: post` comes from `defaults:` in
-`_config.yml`; don't repeat it in posts.
+`_config.yml` — don't repeat it. `excerpt:` in front matter beats `<!--more-->` for the home list.
+Categories/tags feed `/categories/` and `/tags/` automatically; no per-taxonomy pages exist.
 
-- **Permalinks are pinned**: `permalink: /:categories/:year-:month-:day/:title:output_ext` produces
-  `/meta/2026-09-17/hello-world.html`. Jekyll's bare default (`/2026/09/17/hello-world.html`) would
-  change every URL. `scripts/check.sh` fails if the shape changes.
-- **MathJax is per-page** (`mathjax: true`). `_includes/mathjax.html` is pinned to an exact version
-  with an SRI hash; when bumping, recompute:
-  `curl -s https://cdn.jsdelivr.net/npm/mathjax@<ver>/es5/tex-mml-chtml.js | openssl dgst -sha384 -binary | openssl base64 -A`
-- `excerpt:` in front matter wins over the `<!--more-->` split for the home page list.
-- Categories/tags feed `/categories/` and `/tags/` automatically — no pages to create per taxonomy.
+MathJax is **per-page** (`mathjax: true`) and pinned with an SRI hash in `_includes/mathjax.html`;
+when bumping the version, recompute the hash:
+`curl -s https://cdn.jsdelivr.net/npm/mathjax@<ver>/es5/tex-mml-chtml.js | openssl dgst -sha384 -binary | openssl base64 -A`
 
-## Customization points
+## Where things go
 
-- **`assets/css/main.css`** — every colour/size decision lives in the `:root` token block, with
-  `[data-theme="dark"]` and `@media (prefers-color-scheme: dark)` overrides. Add a token, don't
-  hard-code a colour.
-- **`assets/css/highlight.css` is generated** — edit `scripts/gen-highlight.rb` (Rouge theme names)
-  and run `rake highlight`. Never hand-edit it.
-- **`_layouts/default.html`** — head, nav, footer. Nav links are inline here (there is no data file).
-- **`_includes/icon.html`** — add icons as `{%- when "name" -%}<svg …>` and use
-  `{% include icon.html name="name" %}`. Icons are inline SVG on purpose: no icon font.
-- **`_layouts/home.html` / `post.html`** — list and article markup (reading time, tags, prev/next,
-  related-by-shared-tag).
-- **`assets/js/theme.js`** — theme toggle (writes `data-theme` + `localStorage` key `skin`) and
-  copy-code buttons. The pre-paint script lives in `_layouts/default.html` to avoid a flash.
-- **`search.md` + `search.json` + `assets/js/search.js`** — client-side search. `search.json` embeds
-  full post bodies; if the blog grows past a few hundred posts, truncate it there.
+| Change | File |
+|---|---|
+| Colour, spacing, typography | `assets/css/main.css` — edit the `:root` token block (and its dark overrides); never hard-code a colour |
+| Code-highlighting colours | `scripts/gen-highlight.rb`, then `rake highlight` — `assets/css/highlight.css` is generated, don't hand-edit |
+| Nav, `<head>`, footer | `_layouts/default.html` (nav links are inline; there is no data file) |
+| New icon | add a `{%- when "name" -%}` case to `_includes/icon.html`, use `{% include icon.html name="name" %}` |
+| List / article markup | `_layouts/home.html`, `_layouts/post.html` |
+| Theme toggle, copy buttons | `assets/js/theme.js` (the pre-paint script is in `_layouts/default.html`) |
+| Search | `search.md` + `search.json` + `assets/js/search.js` |
 
 ## Gotchas
 
 - **Jekyll 4 has no built-in pagination.** `paginate:` in `_config.yml` without the
-  `jekyll-paginate` gem emits a deprecation warning and renders an **empty** home page. The bare
-  design lists posts directly with `home_post_limit`; if you ever add real pagination, add the gem
-  and update `scripts/check.sh`.
-- **Published markdown is rendered through Liquid.** `AGENTS.md`, `README.md`, `Rakefile`, `scripts/`,
-  `.github/`, `.ruby-version`, `Gemfile*` are in `exclude:` — a literal `{% … %}` in prose once failed
-  the build with `Could not locate the included file ''`. New root-level files go in `exclude:`.
-  Liquid examples inside published posts need `{% raw %}`.
-- **`assets/js/search.js` has front matter on purpose** (`layout: null`) so its one Liquid tag is
-  processed. Removing the front matter ships the raw Liquid to the browser.
-- **`url: "https://oferns.github.io"` is not cosmetic** — with it empty, `jekyll-sitemap` emits
-  relative `<loc>` (invalid) and `jekyll-seo-tag`/`jekyll-feed` emit relative canonical, `og:url`,
-  `<id>`. Asset paths use `baseurl`, so setting `url` is safe.
-- **Don't reintroduce dependencies.** CI fails the build if Font Awesome, jQuery, lunr or a
-  `dark.css` stylesheet appear. Dark mode is a variable swap; icons are inline SVG; search is
-  `search.json` + vanilla JS.
+  `jekyll-paginate` gem warns and renders an **empty** home page. The home list uses
+  `home_post_limit` (0 = show all).
+- **Published markdown is rendered through Liquid.** Root-level docs are in `exclude:` for that
+  reason — add new root-level files there. Liquid examples inside posts need `{% raw %}`.
+- **`assets/js/search.js` must keep its `---` front matter**: it contains one Liquid tag.
+- **`url:` in `_config.yml` is load-bearing.** With it empty, `jekyll-sitemap` emits relative `<loc>`
+  (invalid) and `jekyll-seo-tag`/`jekyll-feed` emit relative canonical, `og:url` and `<id>`. Asset
+  paths use `baseurl`, so setting `url` is safe.
+- **Permalinks are pinned** to `/:categories/:year-:month-:day/:title:output_ext` so published URLs
+  survive; Jekyll's bare default would change them all.
+- **Don't reintroduce dependencies.** CI fails on Font Awesome, jQuery, lunr or a `dark.css`
+  stylesheet: dark mode is a CSS variable swap, icons are inline SVG, search is `search.json` + JS.
 - **`rouge` is capped at `< 5.0`** by Jekyll 4.4.1 — don't force Rouge 5.
-- `author.avatar` / `og_image` / `twitter` are not wired up; `assets/favicon.svg` is a hand-written
-  monogram.
-- No custom domain: Pages reports `cname: null`. Don't add a `CNAME` file.
-- No test framework, no linter. Verification = `rake check` (same as CI) plus eyeballing the site in
-  both light and dark skins.
+- No custom domain (`cname: null`): don't add a `CNAME` file. No test framework — `rake check` is it.
