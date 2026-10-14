@@ -1,115 +1,111 @@
 # AGENTS.md
 
-Personal blog for Oliver Ferns. Jekyll site published to GitHub Pages (user page repo, `master`,
-served at `https://oferns.github.io` at the root path — `baseurl` is empty).
+Personal blog for Oliver Ferns. Plain Jekyll published to GitHub Pages (user page repo, `master`,
+`https://oferns.github.io` at the root path, `baseurl` empty). **No theme gem and no front-end
+libraries** — the layouts, CSS and JS in this repo are the whole front end.
 
 ## Stack
 
 | | |
 |---|---|
-| Ruby | `3.4.3` (`.ruby-version`; CI uses it via `ruby/setup-ruby`) |
+| Ruby | `3.4.3` (`.ruby-version`; CI reads it via `ruby/setup-ruby`) |
 | Jekyll | `4.4.1` |
-| Theme | `minimal-mistakes-jekyll` `4.28.1`, **gem-based** via `theme:` in `_config.yml` |
-| Markdown / highlighter | kramdown (GFM) / Rouge |
-| Deps | `Gemfile` + committed `Gemfile.lock`; Dependabot opens weekly bundler + github-actions PRs |
+| Gems (38 total) | `jekyll`, `jekyll-seo-tag`, `jekyll-feed`, `jekyll-sitemap`, `rake`, `webrick` |
+| Front end | `assets/css/main.css`, `assets/css/highlight.css` (generated), `assets/js/theme.js`, `assets/js/search.js` |
+| Markdown / highlighter | kramdown (GFM) / Rouge (built into Jekyll) |
+| Deps | committed `Gemfile.lock`; Dependabot weekly for bundler + github-actions |
 
-There is **no** `remote_theme` and **no** `_config.local.yml` any more — local, CI and production all
-build from the same `Gemfile` and `_config.yml`. `rouge` is capped at `< 5.0` by Jekyll 4.4.1; don't
-try to force Rouge 5.
+`bundle list` should stay near 38 gems. `sass-embedded` + `google-protobuf` are installed because
+Jekyll hard-depends on `jekyll-sass-converter`, but nothing here is SCSS — they go unused.
 
 ## Commands
 
 ```sh
 bundle install
-rake serve    # dev server + live reload, http://localhost:4000
-rake build    # build to _site
-rake check    # build + scripts/check.sh — this is the verification step
+rake serve      # dev server + live reload, http://localhost:4000
+rake build      # build to _site
+rake check      # build + scripts/check.sh — the verification step
 rake new TITLE="My post" TAGS=a,b CATEGORY=math
-rake update   # bundle update, then rake check
+rake highlight  # regenerate assets/css/highlight.css from Rouge
+rake update     # bundle update, then rake check
 ```
 
-`_site/` and `.jekyll-cache/` are build artifacts — gitignored, never edit them.
+`_site/` and `.jekyll-cache/` are artifacts — gitignored, never edit them.
 
-**`scripts/check.sh` is the single source of truth for smoke assertions** (pages exist, sitemap
-`<loc>` is absolute, theme chrome rendered, reading time + related posts present, lunr index built,
-MathJax pinned + SRI'd, repo docs not published). CI runs exactly `bash scripts/check.sh _site`.
-Add new assertions **there**, not in the workflow file.
+**`scripts/check.sh` is the single source of truth for smoke assertions** and CI runs exactly
+`bash scripts/check.sh _site`. It asserts: required pages exist; the post permalink shape; absolute
+sitemap `<loc>` and canonical; posts listed on the home page; reading time + tags rendered; dark-mode
+`data-theme` hook and CSS custom properties present; inline SVG present; search link + non-empty
+`search.json`; MathJax pinned + SRI where used; **Font Awesome / jQuery / lunr / `dark.css` absent**;
+repo docs not published; and a **home-page CSS+JS payload budget of 8 KB gzipped** (currently ~4 KB).
+Add new assertions there, not in the workflow file. If you intentionally change any of this, update
+`scripts/check.sh` in the same commit.
 
 ## Deployment
 
 `.github/workflows/deploy.yml`: `ruby/setup-ruby` (bundler cache) → `bundle exec jekyll build`
 (`JEKYLL_ENV=production`) → `scripts/check.sh` → `actions/upload-pages-artifact@v5` →
-`actions/deploy-pages@v5` (master pushes only; PRs build and assert, never deploy).
+`actions/deploy-pages@v5` (master pushes only; PRs build + assert, never deploy).
 
-- Pages' build source **must** be set to "GitHub Actions". If it is ever set back to "Deploy from a
-  branch", production reverts to the frozen `github-pages` gem (Jekyll 3.10), the repo's Gemfile is
-  ignored, and the local/production skew that broke the 2026 reboot comes back.
+- Pages' build source must be **"GitHub Actions"**. If it is set to "Deploy from a branch",
+  production reverts to the frozen `github-pages` gem (Jekyll 3.10) and this Gemfile is ignored.
 - The `deploy` job needs `permissions: pages: write, id-token: write` and the `github-pages`
-  environment. Don't trim those.
-- After pushing: `gh run list`, then `gh run view <id> --log` on failure. A failed workflow leaves the
-  previous deployment live.
+  environment — don't trim them.
+- After pushing: `gh run list`, then `gh run view <id> --log`. A failed workflow leaves the previous
+  deployment live.
 
 ## Adding a post
 
-`rake new TITLE="…"` scaffolds `_posts/YYYY-MM-DD-slug.md`. Front matter defaults in `_config.yml`
-supply `layout: single`, `author_profile`, `read_time`, `related`, `comments: false`, `share: false`
-— don't repeat them in posts.
+`rake new TITLE="…"` scaffolds `_posts/YYYY-MM-DD-slug.md`. `layout: post` comes from `defaults:` in
+`_config.yml`; don't repeat it in posts.
 
-- **MathJax is per-page** (`mathjax: true`). Minimal Mistakes 4.28.1 has **no built-in MathJax**
-  (grep the gem: zero hits), so `_includes/head/custom.html` is the only loader. It is pinned to an
-  exact version with an SRI hash; when bumping, recompute the hash:
+- **Permalinks are pinned**: `permalink: /:categories/:year-:month-:day/:title:output_ext` produces
+  `/meta/2026-09-17/hello-world.html`. Jekyll's bare default (`/2026/09/17/hello-world.html`) would
+  change every URL. `scripts/check.sh` fails if the shape changes.
+- **MathJax is per-page** (`mathjax: true`). `_includes/mathjax.html` is pinned to an exact version
+  with an SRI hash; when bumping, recompute:
   `curl -s https://cdn.jsdelivr.net/npm/mathjax@<ver>/es5/tex-mml-chtml.js | openssl dgst -sha384 -binary | openssl base64 -A`
-  `scripts/check.sh` fails if the URL is unpinned (e.g. `mathjax@3`) or the hash is missing.
-- Post permalink is MM's default `/:categories/:year/:month/:day/:title.html` — nested dirs on disk.
-- `<!--more-->` sets where the home-page preview cuts; `excerpt:` in front matter wins.
-- `header.teaser: /assets/images/x.png` gives a thumbnail in post lists.
+- `excerpt:` in front matter wins over the `<!--more-->` split for the home page list.
+- Categories/tags feed `/categories/` and `/tags/` automatically — no pages to create per taxonomy.
 
 ## Customization points
 
-Theme hooks and data overrides only — never vendor theme files into the repo:
-
-- `_includes/head/custom.html` — MathJax loader, dark-stylesheet preload, pre-paint skin script.
-- `_includes/footer/custom.html` — light/dark toggle + `localStorage` key `mm-skin`.
-- `assets/css/dark.scss` — a **second full compile** of the theme with the dark skin variables,
-  toggled at runtime by enabling/disabling the `#skin-dark` link. ~107 KB (~19 KB gz); browsers fetch
-  `disabled` stylesheets, so every visitor downloads it. Accepted cost of a no-FOUC toggle, cached
-  site-wide — don't "optimize" it away. Styles that must work in both skins go in
-  `assets/css/custom.css`.
-- `_data/navigation.yml` — masthead links; overrides the theme gem's placeholder navigation.
-- Pages at the root: `search.md` (`layout: search`), `categories.md` (`layout: categories`),
-  `tags.md` (`layout: tags`), `404.md` (`permalink: /404.html`).
-
-Features enabled in `_config.yml`: `search` (lunr, `search_full_content: false`), `reading_time`,
-`related`, `enable_copy_code_button`, `category_archive`/`tag_archive` with `type: liquid`
-(anchor links on the archive pages — no per-category/tag pages are generated).
-
-Plugins: `jekyll-paginate`, `jekyll-sitemap`, `jekyll-seo-tag`, `jekyll-feed`,
-`jekyll-include-cache`. All are in the Gemfile's `:jekyll_plugins` group **and** listed under
-`plugins:`.
+- **`assets/css/main.css`** — every colour/size decision lives in the `:root` token block, with
+  `[data-theme="dark"]` and `@media (prefers-color-scheme: dark)` overrides. Add a token, don't
+  hard-code a colour.
+- **`assets/css/highlight.css` is generated** — edit `scripts/gen-highlight.rb` (Rouge theme names)
+  and run `rake highlight`. Never hand-edit it.
+- **`_layouts/default.html`** — head, nav, footer. Nav links are inline here (there is no data file).
+- **`_includes/icon.html`** — add icons as `{%- when "name" -%}<svg …>` and use
+  `{% include icon.html name="name" %}`. Icons are inline SVG on purpose: no icon font.
+- **`_layouts/home.html` / `post.html`** — list and article markup (reading time, tags, prev/next,
+  related-by-shared-tag).
+- **`assets/js/theme.js`** — theme toggle (writes `data-theme` + `localStorage` key `skin`) and
+  copy-code buttons. The pre-paint script lives in `_layouts/default.html` to avoid a flash.
+- **`search.md` + `search.json` + `assets/js/search.js`** — client-side search. `search.json` embeds
+  full post bodies; if the blog grows past a few hundred posts, truncate it there.
 
 ## Gotchas
 
-- **`jekyll-include-cache` must stay in `plugins:`.** MM's `_layouts/default.html` uses
-  `{% include_cached %}`. Omitting it fails the build with `Unknown tag 'include_cached'`.
+- **Jekyll 4 has no built-in pagination.** `paginate:` in `_config.yml` without the
+  `jekyll-paginate` gem emits a deprecation warning and renders an **empty** home page. The bare
+  design lists posts directly with `home_post_limit`; if you ever add real pagination, add the gem
+  and update `scripts/check.sh`.
 - **Published markdown is rendered through Liquid.** `AGENTS.md`, `README.md`, `Rakefile`, `scripts/`,
-  `.github/`, `.ruby-version` and `Gemfile*` are in `exclude:` for that reason — a literal
-  `{% include_cached %}` in prose once failed the build with `Could not locate the included file ''`.
-  If you add a new root-level file, add it to `exclude:`. Liquid examples inside published posts need
-  `{% raw %}`.
-- **`url: "https://oferns.github.io"` is not cosmetic.** With it empty, `jekyll-sitemap` emits
+  `.github/`, `.ruby-version`, `Gemfile*` are in `exclude:` — a literal `{% … %}` in prose once failed
+  the build with `Could not locate the included file ''`. New root-level files go in `exclude:`.
+  Liquid examples inside published posts need `{% raw %}`.
+- **`assets/js/search.js` has front matter on purpose** (`layout: null`) so its one Liquid tag is
+  processed. Removing the front matter ships the raw Liquid to the browser.
+- **`url: "https://oferns.github.io"` is not cosmetic** — with it empty, `jekyll-sitemap` emits
   relative `<loc>` (invalid) and `jekyll-seo-tag`/`jekyll-feed` emit relative canonical, `og:url`,
   `<id>`. Asset paths use `baseurl`, so setting `url` is safe.
-- A clean build prints **no** Sass warnings. The theme's vendored Susy emits ~230
-  `slash-div`/`@import` deprecations, silenced by `sass: quiet_deps` + `silence_deprecations`. Valid
-  ids only — `function` and `mixin-deprecation` are rejected, `mixed-decls` is obsolete and warns.
-  If warnings reappear after a theme bump, adjust that list; don't edit theme SCSS.
-- Font Awesome is loaded from `@fortawesome/fontawesome-free@latest` — hardcoded in the theme's
-  `_includes/head.html` with no config knob. Pinning it means vendoring that include; the light/dark
-  toggle icons depend on it.
-- `author.avatar` is **commented out** in `_config.yml`; uncomment it only once
-  `assets/images/bio-photo.jpg` exists.
-- `author.links` drives the footer icons; `site.twitter` / `twitter_image` / `og_image` are
-  commented out until real handles/images exist.
+- **Don't reintroduce dependencies.** CI fails the build if Font Awesome, jQuery, lunr or a
+  `dark.css` stylesheet appear. Dark mode is a variable swap; icons are inline SVG; search is
+  `search.json` + vanilla JS.
+- **`rouge` is capped at `< 5.0`** by Jekyll 4.4.1 — don't force Rouge 5.
+- `author.avatar` / `og_image` / `twitter` are not wired up; `assets/favicon.svg` is a hand-written
+  monogram.
 - No custom domain: Pages reports `cname: null`. Don't add a `CNAME` file.
-- No test framework and no linters. Verification = `rake check` (same as CI) plus eyeballing the
-  rendered page in both light and dark skins.
+- No test framework, no linter. Verification = `rake check` (same as CI) plus eyeballing the site in
+  both light and dark skins.

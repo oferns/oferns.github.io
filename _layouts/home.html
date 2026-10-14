@@ -1,0 +1,27 @@
+---
+layout: default
+---
+{%- if site.home_post_limit and site.home_post_limit > 0 -%}
+  {%- assign posts = site.posts | limit: site.home_post_limit -%}
+{%- else -%}
+  {%- assign posts = site.posts -%}
+{%- endif -%}
+
+<ul class="post-list">
+  {%- for post in posts -%}
+  <li>
+    <h2><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
+    <p class="meta">
+      <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%-d %B %Y" }}</time>
+      {%- if post.categories.size > 0 %} · {{ post.categories | join: ", " }}{% endif -%}
+    </p>
+    {%- if post.excerpt and post.excerpt != "" -%}
+    <p class="lead">{{ post.excerpt | strip_html }}</p>
+    {%- endif -%}
+  </li>
+  {%- endfor -%}
+</ul>
+
+{%- if site.home_post_limit and site.home_post_limit > 0 and site.posts.size > site.home_post_limit -%}
+<p class="meta">{{ site.posts.size }} posts in total — showing the newest {{ site.home_post_limit }}.</p>
+{%- endif -%}

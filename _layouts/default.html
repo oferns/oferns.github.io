@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="{{ site.locale | default: 'en-GB' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+{% seo %}
+  <link rel="icon" href="{{ '/assets/favicon.svg' | relative_url }}" type="image/svg+xml">
+  <link rel="alternate" type="application/atom+xml" title="{{ site.title }}"
+        href="{{ '/feed.xml' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '/assets/css/highlight.css' | relative_url }}">
+  {% include mathjax.html %}
+  <script>
+    (function () {
+      var s = null; try { s = localStorage.getItem('skin'); } catch (e) {}
+      var dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-head">
+    <div class="wrap bar">
+      <span class="site-title"><a href="{{ '/' | relative_url }}">{{ site.title }}</a></span>
+      <nav aria-label="Main">
+        <a href="{{ '/' | relative_url }}">Posts</a>
+        <a href="{{ '/categories/' | relative_url }}">Categories</a>
+        <a href="{{ '/tags/' | relative_url }}">Tags</a>
+        <a href="{{ '/search/' | relative_url }}">{% include icon.html name="search" %} Search</a>
+        <a href="https://github.com/oferns" rel="me">{% include icon.html name="github" %} GitHub</a>
+        <a href="{{ '/feed.xml' | relative_url }}">{% include icon.html name="rss" %} Feed</a>
+        <button id="skin-toggle" class="icon-btn" type="button" aria-pressed="false"
+                aria-label="Toggle light and dark mode" title="Toggle light/dark mode">
+          <span class="moon">{% include icon.html name="moon" %}</span>
+          <span class="sun" style="display:none">{% include icon.html name="sun" %}</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    {{ content }}
+  </main>
+
+  <footer class="site-foot">
+    <div class="wrap bar">
+      <span class="meta">&copy; {{ 'now' | date: "%Y" }} {{ site.author }}</span>
+      <span class="meta"><a href="{{ '/feed.xml' | relative_url }}">Feed</a></span>
+      <span class="meta">Built with <a href="https://jekyllrb.com/">Jekyll</a></span>
+    </div>
+  </footer>
+
+  <script src="{{ '/assets/js/theme.js' | relative_url }}" defer></script>
+  {%- if page.use_search %}<script src="{{ '/assets/js/search.js' | relative_url }}" defer></script>{% endif -%}
+</body>
+</html>

@@ -40,8 +40,6 @@ fi
   fi
   echo "excerpt: \"One or two sentences — used on the home page list and in RSS.\""
   echo "# mathjax: true   # uncomment for \$inline\$ and \$\$display\$\$ math"
-  echo "# header:"
-  echo "#   teaser: /assets/images/some-image.png   # thumbnail in post lists"
   echo "---"
   echo
   echo "Opening paragraph."
