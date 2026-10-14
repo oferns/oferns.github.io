@@ -71,6 +71,11 @@ Allowed plugins are the GitHub Pages allowlist: `jekyll-paginate`, `jekyll-sitem
 - **There is no deploy pipeline in this repo.** Publishing is GitHub's built-in "Deploy from a
   branch" Jekyll build on push to `master` (Pages API: `build_type: legacy`, source
   `master`/`/`). Expect a 1–2 min delay; a failed build leaves the previous site up, silently.
+- `.github/workflows/build-check.yml` is the only CI and **publishes nothing**. It builds with
+  `actions/jekyll-build-pages` (the github-pages gem, i.e. production's Jekyll 3.10) and asserts that
+  `index.html`, `sitemap.xml`, `feed.xml`, `dark.css` exist, that sitemap `<loc>` values are absolute,
+  and that the `custom.css` link is well-formed. Keep new assertions there — it is the closest thing
+  to a test suite. It builds from `_config.yml` only, since `_config.local.yml` is gitignored.
 - **Production runs Jekyll 3.10, local is 4.4.1.** A green local build does not prove the Pages
   build will pass. Minimal Mistakes supports both (`jekyll >= 3.7, < 5.0`), so this is low risk,
   but be conservative with Jekyll-4-only features.
@@ -88,5 +93,6 @@ Allowed plugins are the GitHub Pages allowlist: `jekyll-paginate`, `jekyll-sitem
 - `_config.yml` references `author.avatar: /assets/images/bio-photo.jpg`, which does not exist.
   Add the image or delete the key.
 - `_posts/2026-09-17-hello-world.md` is a setup smoke-test; delete it whenever you like.
-- No tests and no linters. Verification = a clean, warning-free local `jekyll build` plus eyeballing
-  the rendered page in both light and dark skins.
+- No tests and no linters. Verification = a clean, warning-free local `jekyll build`, the CI smoke
+  assertions in `.github/workflows/build-check.yml`, plus eyeballing the rendered page in both light
+  and dark skins.

@@ -1,0 +1,43 @@
+name: Build check
+
+# Publishes nothing. Pages publishes via its built-in "Deploy from a branch" build.
+# This job builds with the *github-pages* gem (Jekyll 3.10) — the same toolchain
+# production uses — so a broken build fails here instead of silently leaving the
+# previous site live.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Builds with the Pages toolchain. _config.local.yml is gitignored, so this
+      # exercises the exact remote_theme config that production uses.
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site-check
+
+      - name: Verify expected output
+        run: |
+          test -f _site-check/index.html
+          test -f _site-check/sitemap.xml
+          test -f _site-check/feed.xml
+          test -f _site-check/assets/css/dark.css
+          # sitemap <loc> must be absolute (needs site.url in _config.yml)
+          grep -q '<loc>https://oferns.github.io/' _site-check/sitemap.xml
+          # custom.css must be linked with a well-formed, quoted href
+          grep -q 'href="/assets/css/custom.css"' _site-check/index.html
