@@ -2,6 +2,10 @@
 title: "Hello world"
 date: 2026-09-17
 categories: meta
+tags:
+  - jekyll
+  - setup
+excerpt: "Smoke test for the rebooted blog: math, code highlighting, dark mode."
 mathjax: true # per-page opt-in; the loader lives in _includes/head/custom.html (the theme has no built-in MathJax)
 ---
 

@@ -1,7 +1,15 @@
 {%- if page.mathjax -%}
 <!-- MathJax 3 — loaded only on pages with `mathjax: true` in front matter.
-     Supports $inline$ and $$display$$ math out of the box (MathJax 3 defaults). -->
-<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+     Supports $inline$ and $$display$$ math out of the box (MathJax 3 defaults).
+     Pinned to an exact version + SRI: the theme has no built-in MathJax, so this
+     is the only loader. When bumping, recompute the hash:
+       curl -s https://cdn.jsdelivr.net/npm/mathjax@<ver>/es5/tex-mml-chtml.js \
+         | openssl dgst -sha384 -binary | openssl base64 -A
+-->
+<script defer
+        src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"
+        integrity="sha384-Wuix6BuhrWbjDBs24bXrjf4ZQ5aFeFWBuKkFekO2t8xFU0iNaLQfp2K6/1Nxveei"
+        crossorigin="anonymous"></script>
 {%- endif -%}
 
 <!-- Light/dark mode: dark stylesheet is a full recompile of the theme with the

@@ -1,66 +1,110 @@
-# Minimal Mistakes theme (loaded remotely by GitHub Pages — no Gemfile needed there)
-remote_theme: mmistakes/minimal-mistakes
+# ============================================================
+# Site
+# ============================================================
+# Gem-based theme, version pinned by Gemfile.lock (was remote_theme, which
+# re-downloaded the theme from HEAD on every Pages build — unpinned and slow).
+theme: minimal-mistakes-jekyll
 
 title: Oliver Ferns
+name: Oliver Ferns # used by jekyll-seo-tag
 description: Blog of Oliver Ferns
-# url is required by jekyll-seo-tag / jekyll-sitemap / jekyll-feed: with it empty they emit
-# relative URLs, which are invalid in sitemap.xml <loc> and RSS <id>/<link>.
-url: "https://oferns.github.io"
-baseurl: "" # asset paths use baseurl (not url) — keep empty for a user page
+tagline: # optional one-liner shown in the masthead
 
-# Site metadata used by the theme (nav, footer, social links)
+url: "https://oferns.github.io" # required: jekyll-seo-tag / sitemap / feed emit absolute URLs
+baseurl: "" # asset paths use baseurl (not url) — keep empty for a user page
+repository: oferns/oferns.github.io # used by theme for social share links
+
+locale: en-GB # theme UI strings + date formatting
+timezone: Europe/London # post dates render in this zone
+
+# ============================================================
+# Author bio (sidebar on posts, footer links)
+# ============================================================
 author:
   name_and_locale: "Oliver Ferns"
   bio: "Writing about code and math."
   location: ""
-  avatar: "/assets/images/bio-photo.jpg" # optional — add a photo or remove this line
+  # avatar: "/assets/images/bio-photo.jpg" # add the image, then uncomment
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/oferns"
+    - label: "Feed"
+      icon: "fas fa-fw fa-rss-square"
+      url: "/feed.xml"
 
-# MathJax is per-page: add `mathjax: true` to a post's front matter (see _includes/head/custom.html)
+# Social cards: set `site.twitter_image` / `site.og_image` to a 1200x630 image
+# under assets/images/ once you have one, and add your X handle below.
+# twitter:
+#   username: "your_handle"
+#   card: "summary_large_image"
+# twitter_image: "/assets/images/twitter-card.png"
+# og_image: "/assets/images/og-image.png"
 
-# Plugins used by the theme — GitHub Pages allows these out of the box.
-# jekyll-include-cache is REQUIRED: MM's layouts use {% include_cached %}. Locally the theme gem
-# auto-requires it so builds pass without it; Pages does not, and fails with
-# "Unknown tag 'include_cached'".
+# ============================================================
+# Theme features
+# ============================================================
+search: true # lunr-powered search at /search/ (form lands in the masthead)
+search_full_content: false # index post bodies in full (bigger lunr index)
+reading_time: true # enable the per-post "x min read" (see defaults: read_time)
+related: true # "Related Posts" at the end of a post
+enable_copy_code_button: true
+
+category_archive:
+  type: liquid # anchor links on /categories/ — no per-category pages needed
+  path: /categories/
+tag_archive:
+  type: liquid
+  path: /tags/
+
+# ============================================================
+# Plugins (all provided by the theme gem / Gemfile)
+# ============================================================
 plugins:
   - jekyll-paginate
   - jekyll-sitemap
   - jekyll-seo-tag
   - jekyll-feed
-  - jekyll-include-cache
+  - jekyll-include-cache # REQUIRED: MM's layouts use {% include_cached %}
 
-# Front matter defaults — MM 4.x's single-page layout is named `single` (not `post`)
+# ============================================================
+# Front matter defaults
+# ============================================================
 defaults:
   - scope:
       path: ""
       type: posts
     values:
       layout: single
+      author_profile: true
+      read_time: true
+      related: true
+      comments: false # set a provider under `comments:` before flipping this
+      share: false
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: single
+      author_profile: false
 
-# Docs and tooling are not pages. Publishing them makes Jekyll render their contents as Liquid —
-# a literal `{% include_cached %}` written in AGENTS.md's prose broke the Pages build with
-# "Could not locate the included file ''".
-exclude:
-  - AGENTS.md
-  - README.md
-  - Gemfile
-  - Gemfile.lock
-  - vendor/
-  - .github/
-
-# Pagination for the home page (theme handles it; 5 posts per page is the default feel)
+# ============================================================
+# Home page pagination
+# ============================================================
 paginate: 5
 paginate_path: /page:num/
 
-timezone: Europe/London # adjust to your timezone so post dates render correctly
-
-# Keep kramdown + Rouge from your original config (theme defaults, made explicit)
+# ============================================================
+# Markdown / highlighting
+# ============================================================
 kramdown:
   input: GFM
   syntax_highlighter: rouge
 highlighter: rouge
 
-# Silence the ~230 Sass deprecation warnings emitted by the theme's vendored Susy (local builds).
-# GitHub Pages runs jekyll-sass-converter 2.x, which ignores these keys — harmless there.
+# ============================================================
+# Sass — silence the theme's vendored Susy deprecation noise
+# ============================================================
 sass:
   quiet_deps: true
   silence_deprecations:
@@ -72,5 +116,17 @@ sass:
     - duplicate-var-flags
     - new-global
 
-# GitHub Pages sets these automatically; harmless to declare for local builds
-repository: oferns/oferns.github.io # used by theme for social share links
+# ============================================================
+# Never published. Jekyll renders published .md through Liquid, so prose
+# containing {% ... %} / {{ ... }} in these files breaks the build.
+# ============================================================
+exclude:
+  - AGENTS.md
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - Rakefile
+  - scripts/
+  - vendor/
+  - .github/
+  - .ruby-version

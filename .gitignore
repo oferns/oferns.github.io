@@ -1,9 +1,7 @@
 # Jekyll build artifacts and local dev files
 _site/
+_site-check/
 .sass-cache/
 .jekyll-cache/
 .jekyll-metadata
 vendor/bundle/
-
-# Local-only config (swaps remote_theme for the theme gem) — must never reach Pages
-_config.local.yml

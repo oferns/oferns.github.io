@@ -1,57 +1,86 @@
 # oferns.github.io
 
-Personal blog on [GitHub Pages](https://pages.github.com/), built with Jekyll and the [Minimal Mistakes](https://mmistakes.github.io/minimal-mistakes/) theme (loaded remotely — no build tooling needed on GitHub's side).
+Personal blog on [GitHub Pages](https://pages.github.com/). [Jekyll](https://jekyllrb.com/) 4.4 +
+the [Minimal Mistakes](https://mmistakes.github.io/minimal-mistakes/) theme as a **gem**, built and
+deployed by a GitHub Actions workflow (no legacy Pages build, no `remote_theme`).
+
+## Quick start
+
+```sh
+ruby -v          # .ruby-version pins 3.4.3
+bundle install
+rake serve       # http://localhost:4000 with live reload
+```
 
 ## Writing a post
 
-Create a file in `_posts/` named `YYYY-MM-DD-title.md`:
+```sh
+rake new TITLE="My new post" TAGS=jekyll,math CATEGORY=math
+# or: scripts/new-post.sh "My new post" jekyll,math math
+```
+
+That writes `_posts/YYYY-MM-DD-slug.md` with the right front matter. `layout`, `read_time`,
+`related` and `author_profile` come from `defaults:` in `_config.yml`, so don't repeat them.
 
 ```markdown
 ---
 title: "My new post"
-date: 2026-09-18
-categories: some-category
-mathjax: true # optional — loads MathJax for $inline$ and $$display$$ math
+date: 2026-10-14 09:30:00 +0100
+categories:
+  - math
+tags:
+  - linear-algebra
+excerpt: "One or two sentences — used on the home page list and in RSS."
+mathjax: true # optional — $inline$ and $$display$$ math (per-page opt-in)
+# header:
+#   teaser: /assets/images/pic.png # thumbnail in post lists
 ---
 
-Body in Markdown. Code blocks get syntax highlighting via Rouge.
+Intro paragraph. `<!--more-->` controls where the home-page preview cuts off.
 ```
 
-Push to `master` → GitHub's built-in Jekyll build (Pages "Deploy from a branch", currently
-Jekyll 3.10) runs → live at https://oferns.github.io within a minute or two.
+Code blocks are highlighted by Rouge; Markdown is kramdown with GFM input.
 
-This repo has no deploy pipeline of its own. `.github/workflows/build-check.yml` builds with the
-real Pages toolchain (`actions/jekyll-build-pages`) purely to catch build failures early — it does
-not publish anything.
+## Commands
 
-## Local preview
+| Task | Command |
+|---|---|
+| Dev server + live reload | `rake serve` |
+| Build to `_site` | `rake build` |
+| Build + smoke assertions (what CI runs) | `rake check` |
+| Scaffold a post | `rake new TITLE="…" [TAGS=…] [CATEGORY=…]` |
+| Update all gems within the Gemfile constraints | `rake update` (then `rake check`) |
+
+## Deploy
+
+Push to `master` → `.github/workflows/deploy.yml` builds with this Gemfile, runs
+`scripts/check.sh`, uploads the artifact and deploys it to Pages. Pull requests get the same build
+and assertions, without the deploy.
 
 ```sh
-bundle install
-bundle exec jekyll serve --config _config.yml,_config.local.yml   # http://localhost:4000
+gh run list                                              # build + deploy status
+gh run view <id> --log                                   # failure output
 ```
 
-(`_config.local.yml` swaps the remote theme for the locally installed gem so no network fetch is
-needed; it is gitignored so GitHub Pages never sees it.)
-
-Check for build errors before pushing:
-
-```sh
-bundle exec jekyll build --config _config.yml,_config.local.yml
-```
-
-A clean build prints no Sass warnings (the theme's Susy noise is silenced via `sass:` in
-`_config.yml`).
+Pages must be configured with **GitHub Actions** as its build source (Settings → Pages →
+Build and deployment → Source: GitHub Actions). If it is ever switched back to "Deploy from a
+branch", the legacy Jekyll 3.10 toolchain returns and this repo's Gemfile is ignored.
 
 ## Layout
 
-- `_config.yml` — site title, author bio, plugins, pagination (5 posts/page)
-- `index.html` — home page using the theme's `home` layout (post list + profile sidebar)
-- `_posts/` — blog posts
-- `_includes/head/custom.html` — MathJax loader (theme hook; per-page opt-in via front matter) plus
-  the dark-stylesheet preload
-- `_includes/footer/custom.html` — light/dark mode toggle
-- `assets/css/dark.scss` — second full compile of the theme in the dark skin, toggled at runtime
-- `assets/css/custom.css` — styles that must work in both skins
-- `Gemfile` / `_config.local.yml` — local dev only
-- `AGENTS.md` — conventions and gotchas for AI assistants working on this repo
+- `_config.yml` — theme, author bio, features (search, reading time, related, archives), plugins,
+  front matter defaults, pagination, Sass noise suppression, `exclude:`
+- `_data/navigation.yml` — masthead links (overrides the theme's placeholder nav)
+- `index.html` — home page: theme `home` layout, paginated post list + author profile
+- `_posts/` — posts
+- `search.md` `/search/` — lunr site search · `categories.md` `/categories/` · `tags.md` `/tags/` ·
+  `404.md` `/404.html`
+- `_includes/head/custom.html` — MathJax loader (pinned + SRI) and the dark-skin preload
+- `_includes/footer/custom.html` — light/dark toggle (persisted in `localStorage`)
+- `assets/css/dark.scss` — second compile of the theme in the dark skin · `assets/css/custom.css` —
+  styles that must work in both skins
+- `scripts/check.sh` — smoke assertions, shared by `rake check` and CI
+- `scripts/new-post.sh` — post scaffolder
+- `Rakefile` — the task runner behind all of the above
+- `.github/workflows/deploy.yml` — build + deploy · `.github/dependabot.yml` — weekly gem/action bumps
+- `AGENTS.md` — conventions and gotchas for AI assistants
