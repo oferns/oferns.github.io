@@ -192,6 +192,7 @@ PLATFORMS
 DEPENDENCIES
   jekyll (~> 4.4)
   jekyll-feed
+  jekyll-include-cache
   jekyll-paginate
   jekyll-seo-tag
   jekyll-sitemap

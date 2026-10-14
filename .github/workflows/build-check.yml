@@ -37,7 +37,12 @@ jobs:
           test -f _site-check/sitemap.xml
           test -f _site-check/feed.xml
           test -f _site-check/assets/css/dark.css
+          # a post page was rendered (MM permalink is /:categories/:year/:month/:day/:title.html)
+          test -n "$(find _site-check/meta -name 'hello-world.html')"
           # sitemap <loc> must be absolute (needs site.url in _config.yml)
           grep -q '<loc>https://oferns.github.io/' _site-check/sitemap.xml
           # custom.css must be linked with a well-formed, quoted href
           grep -q 'href="/assets/css/custom.css"' _site-check/index.html
+          # theme actually rendered (MM chrome + our footer include), not a fallback theme
+          grep -q 'class="masthead"' _site-check/index.html
+          grep -q 'id="skin-toggle"' _site-check/index.html

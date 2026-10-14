@@ -64,18 +64,23 @@ Theme hooks are the only place to override presentation — do not vendor theme 
 - `_config.yml` — title, `author:` bio block, plugins, pagination, timezone (`Europe/London`).
 
 Allowed plugins are the GitHub Pages allowlist: `jekyll-paginate`, `jekyll-sitemap`,
-`jekyll-seo-tag`, `jekyll-feed`. Adding anything else will fail the Pages build.
+`jekyll-seo-tag`, `jekyll-feed`, **`jekyll-include-cache`**. The last one is not optional — see the
+`include_cached` gotcha below. Adding any plugin outside the allowlist will fail the Pages build.
 
 ## Deployment
 
 - **There is no deploy pipeline in this repo.** Publishing is GitHub's built-in "Deploy from a
   branch" Jekyll build on push to `master` (Pages API: `build_type: legacy`, source
   `master`/`/`). Expect a 1–2 min delay; a failed build leaves the previous site up, silently.
-- `.github/workflows/build-check.yml` is the only CI and **publishes nothing**. It builds with
-  `actions/jekyll-build-pages` (the github-pages gem, i.e. production's Jekyll 3.10) and asserts that
-  `index.html`, `sitemap.xml`, `feed.xml`, `dark.css` exist, that sitemap `<loc>` values are absolute,
-  and that the `custom.css` link is well-formed. Keep new assertions there — it is the closest thing
-  to a test suite. It builds from `_config.yml` only, since `_config.local.yml` is gitignored.
+- `.github/workflows/build-check.yml` is the only CI in the repo and **publishes nothing**. It builds
+  with `actions/jekyll-build-pages` (the github-pages gem, i.e. production's Jekyll 3.10) and asserts
+  that `index.html`, `sitemap.xml`, `feed.xml`, `dark.css` and a rendered post page exist, that sitemap
+  `<loc>` values are absolute, that the `custom.css` link is well-formed, and that MM's chrome
+  (`class="masthead"`) plus the footer toggle (`id="skin-toggle"`) actually rendered — i.e. the theme
+  was used, not a fallback. Keep new assertions there; it is the closest thing to a test suite. It
+  builds from `_config.yml` only, since `_config.local.yml` is gitignored.
+- After pushing, check both: `gh run list` (the `Build check` workflow **and** `pages-build-deployment`,
+  which is the actual deploy) and `gh api repos/oferns/oferns.github.io/pages/builds/latest`.
 - **Production runs Jekyll 3.10, local is 4.4.1.** A green local build does not prove the Pages
   build will pass. Minimal Mistakes supports both (`jekyll >= 3.7, < 5.0`), so this is low risk,
   but be conservative with Jekyll-4-only features.
@@ -90,6 +95,14 @@ Allowed plugins are the GitHub Pages allowlist: `jekyll-paginate`, `jekyll-sitem
 - `url: "https://oferns.github.io"` in `_config.yml` is **not** cosmetic: with it empty,
   `jekyll-sitemap` emits relative `<loc>` values (invalid) and `jekyll-seo-tag`/`jekyll-feed` emit
   relative canonical, `og:url` and `<id>`. Asset paths use `baseurl`, so setting `url` is safe.
+- **`jekyll-include-cache` must be listed in `plugins:` in `_config.yml`.** MM's `_layouts/default.html`
+  uses `{% include_cached %}`. Locally the theme gem auto-requires the plugin, so a local build passes
+  even with the plugin omitted; Pages requires plugins to be listed explicitly and fails with
+  `Liquid syntax error: Unknown tag 'include_cached'`, leaving the previous site live. This bit the
+  2026 reboot. Keep it in all three places: `_config.yml`, `_config.local.yml`, `Gemfile`.
+- The CI/Pages log line `The github-pages gem can't satisfy your Gemfile's dependencies` is expected
+  and harmless: the Gemfile pins Jekyll 4.4, the Pages gem pins 3.10. Pages builds with its own gem
+  set and ignores the Gemfile. Do not "fix" it by deleting the Gemfile (local dev needs it).
 - `_config.yml` references `author.avatar: /assets/images/bio-photo.jpg`, which does not exist.
   Add the image or delete the key.
 - `_posts/2026-09-17-hello-world.md` is a setup smoke-test; delete it whenever you like.

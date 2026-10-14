@@ -17,12 +17,16 @@ author:
 
 # MathJax is per-page: add `mathjax: true` to a post's front matter (see _includes/head/custom.html)
 
-# Plugins used by the theme — GitHub Pages allows these out of the box
+# Plugins used by the theme — GitHub Pages allows these out of the box.
+# jekyll-include-cache is REQUIRED: MM's layouts use {% include_cached %}. Locally the theme gem
+# auto-requires it so builds pass without it; Pages does not, and fails with
+# "Unknown tag 'include_cached'".
 plugins:
   - jekyll-paginate
   - jekyll-sitemap
   - jekyll-seo-tag
   - jekyll-feed
+  - jekyll-include-cache
 
 # Front matter defaults — MM 4.x's single-page layout is named `single` (not `post`)
 defaults:
