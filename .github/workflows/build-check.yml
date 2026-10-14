@@ -46,3 +46,6 @@ jobs:
           # theme actually rendered (MM chrome + our footer include), not a fallback theme
           grep -q 'class="masthead"' _site-check/index.html
           grep -q 'id="skin-toggle"' _site-check/index.html
+          # repo docs must NOT be published (Jekyll would render their Liquid as tags)
+          test ! -e _site-check/AGENTS.md
+          test ! -e _site-check/README.md

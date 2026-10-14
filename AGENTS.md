@@ -100,6 +100,11 @@ Allowed plugins are the GitHub Pages allowlist: `jekyll-paginate`, `jekyll-sitem
   even with the plugin omitted; Pages requires plugins to be listed explicitly and fails with
   `Liquid syntax error: Unknown tag 'include_cached'`, leaving the previous site live. This bit the
   2026 reboot. Keep it in all three places: `_config.yml`, `_config.local.yml`, `Gemfile`.
+- **Repo docs are excluded from the build** (`exclude:` in `_config.yml`). Jekyll renders every
+  published `.md` through Liquid, so a `{% ... %}` / `{{ ... }}` example in `AGENTS.md` or `README.md`
+  becomes a real tag and fails the build (a literal `{% include_cached %}` in AGENTS.md did exactly
+  that). If you add a new root-level markdown file, add it to `exclude:` — and never put Liquid tags
+  in published pages without `{% raw %}`.
 - The CI/Pages log line `The github-pages gem can't satisfy your Gemfile's dependencies` is expected
   and harmless: the Gemfile pins Jekyll 4.4, the Pages gem pins 3.10. Pages builds with its own gem
   set and ignores the Gemfile. Do not "fix" it by deleting the Gemfile (local dev needs it).

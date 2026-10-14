@@ -36,6 +36,17 @@ defaults:
     values:
       layout: single
 
+# Docs and tooling are not pages. Publishing them makes Jekyll render their contents as Liquid —
+# a literal `{% include_cached %}` written in AGENTS.md's prose broke the Pages build with
+# "Could not locate the included file ''".
+exclude:
+  - AGENTS.md
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor/
+  - .github/
+
 # Pagination for the home page (theme handles it; 5 posts per page is the default feel)
 paginate: 5
 paginate_path: /page:num/
