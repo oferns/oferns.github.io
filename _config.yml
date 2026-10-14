@@ -1,71 +1,38 @@
 # ============================================================
 # Site
 # ============================================================
-# Gem-based theme, version pinned by Gemfile.lock (was remote_theme, which
-# re-downloaded the theme from HEAD on every Pages build — unpinned and slow).
-theme: minimal-mistakes-jekyll
-
 title: Oliver Ferns
-name: Oliver Ferns # used by jekyll-seo-tag
+name: Oliver Ferns # jekyll-seo-tag
+author: Oliver Ferns # jekyll-seo-tag
 description: Blog of Oliver Ferns
-tagline: # optional one-liner shown in the masthead
-
-url: "https://oferns.github.io" # required: jekyll-seo-tag / sitemap / feed emit absolute URLs
-baseurl: "" # asset paths use baseurl (not url) — keep empty for a user page
-repository: oferns/oferns.github.io # used by theme for social share links
-
-locale: en-GB # theme UI strings + date formatting
-timezone: Europe/London # post dates render in this zone
+url: "https://oferns.github.io" # required for absolute canonical/sitemap/feed URLs
+baseurl: "" # user page lives at the root — leave empty
+locale: en-GB
+timezone: Europe/London
 
 # ============================================================
-# Author bio (sidebar on posts, footer links)
+# URLs
 # ============================================================
-author:
-  name_and_locale: "Oliver Ferns"
-  bio: "Writing about code and math."
-  location: ""
-  # avatar: "/assets/images/bio-photo.jpg" # add the image, then uncomment
-  links:
-    - label: "GitHub"
-      icon: "fab fa-fw fa-github"
-      url: "https://github.com/oferns"
-    - label: "Feed"
-      icon: "fas fa-fw fa-rss-square"
-      url: "/feed.xml"
+# Pins today's URL shape (/meta/2026-09-17/hello-world.html). Jekyll's bare
+# default would be /2026/09/17/hello-world.html.
+permalink: /:categories/:year-:month-:day/:title:output_ext
 
-# Social cards: set `site.twitter_image` / `site.og_image` to a 1200x630 image
-# under assets/images/ once you have one, and add your X handle below.
-# twitter:
-#   username: "your_handle"
-#   card: "summary_large_image"
-# twitter_image: "/assets/images/twitter-card.png"
-# og_image: "/assets/images/og-image.png"
+# Home page shows the newest posts, newest first. Jekyll 4 has NO built-in
+# pagination (that is the jekyll-paginate gem); a bare blog lists them all.
+# Set a number to cap the list, or 0/omit for everything.
+home_post_limit: 20
 
 # ============================================================
-# Theme features
-# ============================================================
-search: true # lunr-powered search at /search/ (form lands in the masthead)
-search_full_content: false # index post bodies in full (bigger lunr index)
-reading_time: true # enable the per-post "x min read" (see defaults: read_time)
-related: true # "Related Posts" at the end of a post
-enable_copy_code_button: true
-
-category_archive:
-  type: liquid # anchor links on /categories/ — no per-category pages needed
-  path: /categories/
-tag_archive:
-  type: liquid
-  path: /tags/
-
-# ============================================================
-# Plugins (all provided by the theme gem / Gemfile)
+# Plugins
 # ============================================================
 plugins:
-  - jekyll-paginate
-  - jekyll-sitemap
   - jekyll-seo-tag
   - jekyll-feed
-  - jekyll-include-cache # REQUIRED: MM's layouts use {% include_cached %}
+  - jekyll-sitemap
+
+feed:
+  posts:
+    limit: 20
 
 # ============================================================
 # Front matter defaults
@@ -75,24 +42,12 @@ defaults:
       path: ""
       type: posts
     values:
-      layout: single
-      author_profile: true
-      read_time: true
-      related: true
-      comments: false # set a provider under `comments:` before flipping this
-      share: false
+      layout: post
   - scope:
       path: ""
       type: pages
     values:
-      layout: single
-      author_profile: false
-
-# ============================================================
-# Home page pagination
-# ============================================================
-paginate: 5
-paginate_path: /page:num/
+      layout: default
 
 # ============================================================
 # Markdown / highlighting
@@ -102,23 +57,12 @@ kramdown:
   syntax_highlighter: rouge
 highlighter: rouge
 
-# ============================================================
-# Sass — silence the theme's vendored Susy deprecation noise
-# ============================================================
-sass:
-  quiet_deps: true
-  silence_deprecations:
-    - import
-    - slash-div
-    - global-builtin
-    - color-functions
-    - abs-percent
-    - duplicate-var-flags
-    - new-global
+# Used by _layouts/post.html to render "n min read".
+reading_time_wpm: 200
 
 # ============================================================
-# Never published. Jekyll renders published .md through Liquid, so prose
-# containing {% ... %} / {{ ... }} in these files breaks the build.
+# Never published. Jekyll renders published .md through Liquid, so prose with
+# {% %} / {{ }} in these files breaks the build.
 # ============================================================
 exclude:
   - AGENTS.md

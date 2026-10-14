@@ -1,0 +1,54 @@
+---
+layout: default
+---
+<article>
+  <header>
+    <h1>{{ page.title }}</h1>
+    <p class="meta">
+      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%-d %B %Y" }}</time>
+      {%- assign mins = page.content | number_of_words | divided_by: site.reading_time_wpm -%}
+      {%- if mins < 1 -%}{%- assign mins = 1 -%}{%- endif -%}
+      · {% include icon.html name="clock" %} {{ mins }} min read
+      {%- if page.categories.size > 0 %} · {{ page.categories | join: ", " }}{% endif -%}
+    </p>
+  </header>
+
+  {{ content }}
+
+  {%- if page.tags.size > 0 -%}
+  <ul class="tags">
+    {%- for t in page.tags -%}
+    <li><a href="{{ '/tags/' | relative_url }}#{{ t | slugify }}">{% include icon.html name="tag" %} {{ t }}</a></li>
+    {%- endfor -%}
+  </ul>
+  {%- endif -%}
+
+  <nav class="pn" aria-label="Adjacent posts">
+    {%- if page.previous.url -%}
+    <a href="{{ page.previous.url | relative_url }}">&larr; {{ page.previous.title }}</a>
+    {%- endif -%}
+    {%- if page.next.url -%}
+    <a class="pager-next" href="{{ page.next.url | relative_url }}">{{ page.next.title }} &rarr;</a>
+    {%- endif -%}
+  </nav>
+
+  {%- assign related = "" | split: "" -%}
+  {%- for p in site.posts -%}
+    {%- if p.url != page.url -%}
+      {%- for t in page.tags -%}
+        {%- if p.tags contains t -%}{%- assign related = related | push: p -%}{%- break -%}{%- endif -%}
+      {%- endfor -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- if related.size > 0 -%}
+  <section class="related">
+    <h2>Related</h2>
+    <ul>
+      {%- for p in related -%}
+      <li><a href="{{ p.url | relative_url }}">{{ p.title }}</a>
+        <span class="meta">{{ p.date | date: "%-d %B %Y" }}</span></li>
+      {%- endfor -%}
+    </ul>
+  </section>
+  {%- endif -%}
+</article>

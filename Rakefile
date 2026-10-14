@@ -25,6 +25,11 @@ task :new do
   sh "bash", "scripts/new-post.sh", *args
 end
 
+desc "Regenerate assets/css/highlight.css from Rouge (light + dark themes)"
+task :highlight do
+  sh "ruby scripts/gen-highlight.rb"
+end
+
 desc "Bump every dependency within the Gemfile constraints (then run rake check)"
 task :update do
   sh "bundle update"
