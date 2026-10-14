@@ -1,0 +1,18 @@
+{%- if page.mathjax -%}
+<!-- MathJax 3 — loaded only on pages with `mathjax: true` in front matter.
+     Supports $inline$ and $$display$$ math out of the box (MathJax 3 defaults). -->
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+{%- endif -%}
+
+<!-- Light/dark mode: dark stylesheet is a full recompile of the theme with the
+     dark skin (assets/css/dark.scss). Enabled before paint to avoid flashing. -->
+<link id="skin-dark" rel="stylesheet" href="{{ '/assets/css/dark.css' | relative_url }}" disabled>
+<link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+<script>
+  (function () {
+    var stored = null;
+    try { stored = localStorage.getItem('mm-skin'); } catch (e) {}
+    var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.getElementById('skin-dark').disabled = false;
+  })();
+</script>

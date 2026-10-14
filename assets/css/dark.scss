@@ -1,0 +1,9 @@
+---
+# Second full compile of the theme using the dark skin's variables.
+# Toggled at runtime via _includes/head/custom.html + footer button.
+search: false
+---
+@charset "utf-8";
+
+@import "minimal-mistakes/skins/dark"; // dark skin variables
+@import "minimal-mistakes";            // same components, compiled with dark values

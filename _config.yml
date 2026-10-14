@@ -1,10 +1,61 @@
-lsi: false
-safe: true
-source: ./src
-incremental: false
-highlighter: rouge
-gist:
-  noscript: false
+# Minimal Mistakes theme (loaded remotely by GitHub Pages — no Gemfile needed there)
+remote_theme: mmistakes/minimal-mistakes
+
+title: Oliver Ferns
+description: Blog of Oliver Ferns
+# url is required by jekyll-seo-tag / jekyll-sitemap / jekyll-feed: with it empty they emit
+# relative URLs, which are invalid in sitemap.xml <loc> and RSS <id>/<link>.
+url: "https://oferns.github.io"
+baseurl: "" # asset paths use baseurl (not url) — keep empty for a user page
+
+# Site metadata used by the theme (nav, footer, social links)
+author:
+  name_and_locale: "Oliver Ferns"
+  bio: "Writing about code and math."
+  location: ""
+  avatar: "/assets/images/bio-photo.jpg" # optional — add a photo or remove this line
+
+# MathJax is per-page: add `mathjax: true` to a post's front matter (see _includes/head/custom.html)
+
+# Plugins used by the theme — GitHub Pages allows these out of the box
+plugins:
+  - jekyll-paginate
+  - jekyll-sitemap
+  - jekyll-seo-tag
+  - jekyll-feed
+
+# Front matter defaults — MM 4.x's single-page layout is named `single` (not `post`)
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: single
+
+# Pagination for the home page (theme handles it; 5 posts per page is the default feel)
+paginate: 5
+paginate_path: /page:num/
+
+timezone: Europe/London # adjust to your timezone so post dates render correctly
+
+# Keep kramdown + Rouge from your original config (theme defaults, made explicit)
 kramdown:
-  math_engine: mathjax
+  input: GFM
   syntax_highlighter: rouge
+highlighter: rouge
+
+# Silence the ~230 Sass deprecation warnings emitted by the theme's vendored Susy (local builds).
+# GitHub Pages runs jekyll-sass-converter 2.x, which ignores these keys — harmless there.
+sass:
+  quiet_deps: true
+  silence_deprecations:
+    - import
+    - slash-div
+    - global-builtin
+    - color-functions
+    - abs-percent
+    - duplicate-var-flags
+    - new-global
+
+# GitHub Pages sets these automatically; harmless to declare for local builds
+repository: oferns/oferns.github.io # used by theme for social share links
